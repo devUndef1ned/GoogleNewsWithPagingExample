@@ -27,6 +27,7 @@ android {
 
 def retrofit = "2.6.1"
 def dagger2 = "2.24"
+def coroutines = "1.3.1"
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -40,6 +41,9 @@ dependencies {
     // Dagger2
     implementation "com.google.dagger:dagger:$dagger2"
     kapt "com.google.dagger:dagger-compiler:$dagger2"
+    // Coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines"
 
     testImplementation 'junit:junit:4.12'
 

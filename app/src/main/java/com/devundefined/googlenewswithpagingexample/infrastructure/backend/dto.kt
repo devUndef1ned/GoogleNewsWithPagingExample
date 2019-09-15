@@ -6,6 +6,7 @@ class NewsDto(
     val status: String,
     val code: String?,
     val message: String?,
+    val totalResult: Int?,
     val articles: List<ArticleDto>
 )
 
