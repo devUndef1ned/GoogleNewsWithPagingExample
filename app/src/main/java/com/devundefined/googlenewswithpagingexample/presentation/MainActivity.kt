@@ -1,7 +1,8 @@
-package com.devundefined.googlenewswithpagingexample
+package com.devundefined.googlenewswithpagingexample.presentation
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.devundefined.googlenewswithpagingexample.R
 
 class MainActivity : AppCompatActivity() {
 
