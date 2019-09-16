@@ -16,12 +16,12 @@ import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
-class ArticleLoaderTest {
+class ArticleLoaderProcessorTest {
 
     @Mock
     lateinit var newsApi: NewsApi
 
-    private val loader by lazy { ArticleLoaderImpl(newsApi, "apiKey", "country") }
+    private val loader by lazy { ArticleLoaderProcessorImpl(newsApi, "apiKey", "country") }
 
     @Test
     fun shouldReturnArticles_whenLoadSuccessfullyFromApi() {
@@ -54,7 +54,7 @@ class ArticleLoaderTest {
                 )
             )
 
-            val result = loader.loadArticles(countPerPage = 3, pageNumber = 1)
+            val result = loader.processLoadArticles(countPerPage = 3, pageNumber = 1)
 
             assertTrue(result is LoadResult.Data)
             (result as LoadResult.Data).articles.also { loadedArticles ->
@@ -76,7 +76,7 @@ class ArticleLoaderTest {
                 )
             ).thenThrow(IllegalArgumentException("Failed to load any data"))
 
-            val result = loader.loadArticles(countPerPage = 10, pageNumber = 1)
+            val result = loader.processLoadArticles(countPerPage = 10, pageNumber = 1)
 
             assertTrue(result is LoadResult.Error)
             assertTrue((result as LoadResult.Error).cause is IllegalArgumentException)
@@ -93,7 +93,7 @@ class ArticleLoaderTest {
                 )
             )
 
-            val result = loader.loadArticles(countPerPage = 10, pageNumber = 1)
+            val result = loader.processLoadArticles(countPerPage = 10, pageNumber = 1)
 
             assertTrue(result is LoadResult.Error)
             assertTrue((result as LoadResult.Error).cause is IllegalStateException)
