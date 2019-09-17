@@ -1,7 +1,7 @@
 package com.devundefined.googlenewswithpagingexample.infrastructure
 
 import com.devundefined.googlenewswithpagingexample.domain.Article
-import com.devundefined.googlenewswithpagingexample.domain.loader.LoadResult
+import com.devundefined.googlenewswithpagingexample.domain.LoadResult
 import com.devundefined.googlenewswithpagingexample.infrastructure.backend.ArticleDto
 import com.devundefined.googlenewswithpagingexample.infrastructure.backend.NewsApi
 import com.devundefined.googlenewswithpagingexample.infrastructure.backend.NewsDto
@@ -16,12 +16,12 @@ import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
-class ArticleLoaderProcessorTest {
+class ArticleLoadProcessorTest {
 
     @Mock
     lateinit var newsApi: NewsApi
 
-    private val loader by lazy { ArticleLoaderProcessorImpl(newsApi, "apiKey", "country") }
+    private val loader by lazy { ArticleLoadProcessorImpl(newsApi, "apiKey", "country") }
 
     @Test
     fun shouldReturnArticles_whenLoadSuccessfullyFromApi() {
@@ -54,10 +54,10 @@ class ArticleLoaderProcessorTest {
                 )
             )
 
-            val result = loader.processLoadArticles(countPerPage = 3, pageNumber = 1)
+            val result = loader.processLoading()
 
             assertTrue(result is LoadResult.Data)
-            (result as LoadResult.Data).articles.also { loadedArticles ->
+            (result as LoadResult.Data).pagedArticles.also { loadedArticles ->
                 assertTrue(loadedArticles.any { it.matches(dto1) })
                 assertTrue(loadedArticles.any { it.matches(dto2) })
             }
@@ -76,7 +76,7 @@ class ArticleLoaderProcessorTest {
                 )
             ).thenThrow(IllegalArgumentException("Failed to load any data"))
 
-            val result = loader.processLoadArticles(countPerPage = 10, pageNumber = 1)
+            val result = loader.processLoading()
 
             assertTrue(result is LoadResult.Error)
             assertTrue((result as LoadResult.Error).cause is IllegalArgumentException)
@@ -93,7 +93,7 @@ class ArticleLoaderProcessorTest {
                 )
             )
 
-            val result = loader.processLoadArticles(countPerPage = 10, pageNumber = 1)
+            val result = loader.processLoading()
 
             assertTrue(result is LoadResult.Error)
             assertTrue((result as LoadResult.Error).cause is IllegalStateException)

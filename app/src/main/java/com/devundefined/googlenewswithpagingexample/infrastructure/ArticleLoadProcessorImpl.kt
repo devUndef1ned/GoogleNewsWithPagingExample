@@ -2,16 +2,18 @@ package com.devundefined.googlenewswithpagingexample.infrastructure
 
 import android.annotation.SuppressLint
 import com.devundefined.googlenewswithpagingexample.domain.Article
-import com.devundefined.googlenewswithpagingexample.domain.loader.ArticleLoaderProcessor
-import com.devundefined.googlenewswithpagingexample.domain.loader.LoadResult
+import com.devundefined.googlenewswithpagingexample.domain.ArticleLoadProcessor
+import com.devundefined.googlenewswithpagingexample.domain.LoadResult
 import com.devundefined.googlenewswithpagingexample.infrastructure.backend.ArticleDto
 import com.devundefined.googlenewswithpagingexample.infrastructure.backend.NewsApi
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 
-class ArticleLoaderProcessorImpl(private val newsApi: NewsApi, private val apiKey: String, private val country: String) : ArticleLoaderProcessor {
+class ArticleLoadProcessorImpl(private val newsApi: NewsApi, private val apiKey: String, private val country: String) :
+    ArticleLoadProcessor {
 
     companion object {
+        private const val DEFAULT_SIZE_PER_PAGE = 21
         @SuppressLint("SimpleDateFormat")
         private val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
     }
@@ -22,15 +24,15 @@ class ArticleLoaderProcessorImpl(private val newsApi: NewsApi, private val apiKe
         with(dto) { Article(source.name, author, title, description, url, imageUrl, sdf.parse(date)) }
     }
 
-    override fun processLoadArticles(countPerPage: Int, pageNumber: Int): LoadResult {
+    override fun processLoading(pageNumber: Int): LoadResult {
         return runBlocking {
             withContext(scope.coroutineContext) {
                 try {
-                    val result = newsApi.getNews(apiKey, country, countPerPage, pageNumber)
+                    val result = newsApi.getNews(apiKey, country, DEFAULT_SIZE_PER_PAGE, pageNumber)
                     if (result.status != "ok") {
                         LoadResult.Error(IllegalStateException(result.message))
                     } else {
-                        LoadResult.Data(result.articles.map(toModel), result.totalResult!!)
+                        LoadResult.Data(result.articles.map(toModel), result.totalResult!!, DEFAULT_SIZE_PER_PAGE, pageNumber)
                     }
                 } catch (e: Exception) {
                     LoadResult.Error(e)
