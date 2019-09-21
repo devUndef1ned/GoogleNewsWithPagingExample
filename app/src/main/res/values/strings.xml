@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">GoogleNewsWithPagingExample</string>
+
+    <string name="reload_button_title">Reload</string>
 </resources>
