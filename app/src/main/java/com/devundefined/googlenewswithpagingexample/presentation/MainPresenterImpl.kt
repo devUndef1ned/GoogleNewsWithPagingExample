@@ -72,7 +72,7 @@ class MainPresenterImpl(private val articleLoader: ArticleLoader) : MainPresente
                     val newData = articleLoader.loadMore(state.currentPage)
                     when (newData) {
                         is ArticleLoadPageResult.PagedData -> runInMainThread {
-                            state.pagedDataList.addElements(newData.data)
+                            state = state.mutate(newData)
                         }
                         is ArticleLoadPageResult.Error -> handleError(
                             newData.cause,
@@ -101,10 +101,20 @@ class ScreenState {
                 )
                 this.currentPage = articleLoaderPageResult
             }
+        fun create(pagedDataList: PagedDataList<Article>, currentPage: ArticleLoadPageResult.PagedData) =
+            ScreenState().apply {
+                this.pagedDataList = pagedDataList
+                this.currentPage = currentPage
+            }
     }
 
     lateinit var pagedDataList: PagedDataList<Article>
     lateinit var currentPage: ArticleLoadPageResult.PagedData
 
     fun isInitialized() = this::pagedDataList.isInitialized
+
+    fun mutate(pagedData: ArticleLoadPageResult.PagedData): ScreenState {
+        val newPagedDataList = pagedDataList.apply { addElements(pagedData.data) }
+        return create(newPagedDataList, pagedData)
+    }
 }
