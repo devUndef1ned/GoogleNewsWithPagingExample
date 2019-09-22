@@ -2,20 +2,15 @@ package com.devundefined.googlenewswithpagingexample.presentation.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.devundefined.googlenewswithpagingexample.R
 import com.devundefined.googlenewswithpagingexample.domain.Article
-import kotlinx.coroutines.*
 
 class ArticlePagedAdapter(
     private val pagedDataList: PagedDataList<Article>,
-    private val diffUtilItemCallback: DiffUtil.ItemCallback<Article>,
-    private val pageLoadController: PageLoadController
-) :
-    RecyclerView.Adapter<ArticleViewHolder>(),
-    LoadTaskStateListener,
-    PagedDataList.Observer<Article> {
+    private val pageLoadController: PageLoadController,
+    private val reloadAction: () -> Unit
+) : RecyclerView.Adapter<ArticleViewHolder>() {
 
     companion object {
         private const val VIEW_TYPE_CONTENT = 1
@@ -23,40 +18,36 @@ class ArticlePagedAdapter(
         private const val LOAD_OFFSET = 3
     }
 
-    private val uiScope = CoroutineScope(Dispatchers.Main)
-    private val bgScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-
     private var recyclerView: RecyclerView? = null
 
     private val scrollListener: RecyclerView.OnScrollListener =
         object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 val lastVisibleIndex = findLastVisibleChild()
-                val totalChildCount = itemCount
-
+                val totalChildCount = itemCount - 1
                 if (needToStartLoading(totalChildCount - lastVisibleIndex)) {
                     pageLoadController.loadNext()
                 }
+
             }
 
             private fun needToStartLoading(endListOffset: Int): Boolean {
-                return !pagedDataList.isFinished && pagedDataList.loadTaskState == LoadTaskState.IDLE && endListOffset < LOAD_OFFSET
+                return !pagedDataList.isFinished && pagedDataList.loadTaskState == LoadTaskState.IDLE && endListOffset <= LOAD_OFFSET
             }
         }
 
     init {
-        pagedDataList.observer = this
-        pagedDataList.setLoadTaskStateListener(this)
+        pagedDataList.attachTo(this)
     }
 
     private fun findLastVisibleChild(): Int {
-        for (i in 0 until itemCount) {
+        for (i in (itemCount - 1) downTo 0) {
             val vh = recyclerView?.findViewHolderForAdapterPosition(i)
-            if (vh != null && i != 0 && vh.itemView == null) {
-                return i - 1
+            if (vh != null && i != 0) {
+                return i
             }
         }
-        return itemCount - 1
+        return 0
     }
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
@@ -77,7 +68,7 @@ class ArticlePagedAdapter(
         return if (pagedDataList.isFinished) {
             VIEW_TYPE_CONTENT
         } else {
-            if (position <= pagedDataList.size) {
+            if (position < pagedDataList.size) {
                 VIEW_TYPE_CONTENT
             } else {
                 VIEW_TYPE_NETWORK_STATE
@@ -108,54 +99,30 @@ class ArticlePagedAdapter(
 
     override fun onBindViewHolder(holder: ArticleViewHolder, position: Int) {
         when (holder) {
-            is ContentViewHolder -> holder.setTitle(pagedDataList[position].title)
-            is NetworkStateViewHolder -> holder.setLoadTaskState(pagedDataList.loadTaskState)
+            is ContentViewHolder -> bindContent(holder, position)
+            is NetworkStateViewHolder -> bindNetworkState(holder)
         }
         if (holder is ContentViewHolder) {
             holder.setTitle(pagedDataList[position].title)
         }
     }
 
-    override fun onLoadTaskStateChanged() {
-        uiScope.launch {
-            val newState = pagedDataList.loadTaskState
-            when (newState) {
-                LoadTaskState.IDLE -> notifyItemRemoved(pagedDataList.size + 1)
-                else -> notifyItemChanged(pagedDataList.size + 1, newState)
-            }
-        }
+    private fun bindContent(holder: ContentViewHolder, position: Int) {
+        val article = pagedDataList[position]
+        holder.setTitle(article.title)
+        holder.setIndex(position)
     }
 
-    override fun onListChanged(oldList: List<Article>, newList: List<Article>) {
-        uiScope.launch {
-            val diffResult = bgScope.async {
-                DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-                    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int) =
-                        diffUtilItemCallback.areItemsTheSame(
-                            oldList[oldItemPosition],
-                            newList[newItemPosition]
-                        )
-
-                    override fun getOldListSize() = oldList.size
-                    override fun getNewListSize() = newList.size
-
-                    override fun areContentsTheSame(
-                        oldItemPosition: Int,
-                        newItemPosition: Int
-                    ) = diffUtilItemCallback.areContentsTheSame(
-                        oldList[oldItemPosition],
-                        newList[newItemPosition]
-                    )
-                })
-            }.await()
-            diffResult.dispatchUpdatesTo(this@ArticlePagedAdapter)
-        }
+    override fun onBindViewHolder(
+        holder: ArticleViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        onBindViewHolder(holder, position)
     }
-}
 
-
-object DiffUtilItemCallback : DiffUtil.ItemCallback<Article>() {
-    override fun areItemsTheSame(oldItem: Article, newItem: Article) = oldItem.id == newItem.id
-
-    override fun areContentsTheSame(oldItem: Article, newItem: Article) = oldItem == newItem
+    private fun bindNetworkState(holder: NetworkStateViewHolder) {
+        holder.setLoadTaskState(pagedDataList.loadTaskState)
+        holder.setReloadAction(reloadAction)
+    }
 }

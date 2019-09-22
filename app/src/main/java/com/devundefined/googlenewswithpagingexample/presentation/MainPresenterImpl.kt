@@ -24,6 +24,8 @@ class MainPresenterImpl(private val articleLoader: ArticleLoader) : MainPresente
         mainView = view
         if (!state.isInitialized()) {
             loadInitial()
+        } else {
+            mainView?.showData(state.pagedDataList)
         }
     }
 
@@ -36,10 +38,13 @@ class MainPresenterImpl(private val articleLoader: ArticleLoader) : MainPresente
                             ScreenState.createInitial(loadResult)
                         runInMainThread { mainView?.showData(state.pagedDataList) }
                     }
-                    is ArticleLoadPageResult.Error -> handleError(
-                        loadResult.cause,
-                        "Failed to load initial Data with exception"
-                    )
+                    is ArticleLoadPageResult.Error -> uiScope.launch {
+                        mainView?.showError()
+                        android.util.Log.e(
+                            LOG_TAG,
+                            "Failed to load initial data\n${loadResult.cause}"
+                        )
+                    }
                 }
             }
         }
@@ -60,8 +65,8 @@ class MainPresenterImpl(private val articleLoader: ArticleLoader) : MainPresente
     }
 
     override fun loadNext() {
+        state.pagedDataList.changeTaskState(LoadTaskState.LOADING)
         runBlocking {
-            state.pagedDataList.changeTaskState(LoadTaskState.LOADING)
             job = bgScope.launch {
                 try {
                     val newData = articleLoader.loadMore(state.currentPage)

@@ -6,18 +6,18 @@ class NewsDto(
     val status: String,
     val code: String?,
     val message: String?,
-    val totalResult: Int?,
+    val totalResults: Int?,
     val articles: List<ArticleDto>
 )
 
 class ArticleDto(
     val source: SourceDto,
-    val author: String,
+    val author: String?,
     val title: String,
-    val description: String,
+    val description: String?,
     val url: String,
     @SerializedName("urlToImage")
-    val imageUrl: String,
+    val imageUrl: String?,
     @SerializedName("publishedAt")
     val date: String
 )

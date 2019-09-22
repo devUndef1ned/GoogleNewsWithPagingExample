@@ -49,7 +49,7 @@ class ArticleLoadProcessorTest {
                     status = "ok",
                     code = null,
                     message = null,
-                    totalResult = 2,
+                    totalResults = 2,
                     articles = listOf(dto1, dto2)
                 )
             )
@@ -89,7 +89,7 @@ class ArticleLoadProcessorTest {
             whenever(newsApi.getNews(any(), any(), any(), any())).thenReturn(
                 NewsDto(
                     status = "error", code = "Something is wrong", message =
-                    "Something is wrong error message", totalResult = null, articles = listOf()
+                    "Something is wrong error message", totalResults = null, articles = listOf()
                 )
             )
 

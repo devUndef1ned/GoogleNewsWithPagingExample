@@ -1,12 +1,15 @@
 package com.devundefined.googlenewswithpagingexample.presentation.adapter
 
-class PagedDataList<T : Any>(private val list: MutableList<T>, private val totalSize: Int) : List<T> {
+import androidx.recyclerview.widget.RecyclerView
 
-    interface Observer<T> {
-        fun onListChanged(oldList: List<T>, newList: List<T>)
-    }
+class PagedDataList<T : Any>(
+    private val list: MutableList<T>,
+    private val totalSize: Int
+) : List<T> {
 
-    override val size: Int = list.size
+    override val size: Int
+        get() = list.size
+
     override fun contains(element: T) = list.contains(element)
     override fun containsAll(elements: Collection<T>) = list.containsAll(elements)
     override fun get(index: Int) = list[index]
@@ -18,27 +21,29 @@ class PagedDataList<T : Any>(private val list: MutableList<T>, private val total
     override fun listIterator(index: Int) = list.listIterator(index)
     override fun subList(fromIndex: Int, toIndex: Int) = list.subList(fromIndex, toIndex)
 
-    var observer: Observer<T>? = null
+    var adapter: RecyclerView.Adapter<*>? = null
 
-    val isFinished 
+    val isFinished
         get() = list.size == totalSize
 
-    private val networkStateHolder = NetworkStateHolder()
-    val loadTaskState = networkStateHolder.state
+    var loadTaskState = LoadTaskState.IDLE
+        private set
 
     fun addElements(newElements: Collection<T>) {
-        changeTaskState(LoadTaskState.IDLE)
-        val oldList = list.toList()
+        val oldListSize = list.size
         list.addAll(newElements)
-        val newList = list.toList()
-        observer?.onListChanged(oldList, newList)
+        loadTaskState = LoadTaskState.IDLE
+        adapter?.notifyItemRemoved(oldListSize)
+        adapter?.notifyItemRangeInserted(oldListSize, newElements.size + if (isFinished) 0 else 1)
     }
 
-    fun setLoadTaskStateListener(loadTaskStateListener: LoadTaskStateListener) {
-        networkStateHolder.listener = loadTaskStateListener
-    }
 
     fun changeTaskState(newState: LoadTaskState) {
-        networkStateHolder.state = newState
+        loadTaskState = newState
+        adapter?.notifyItemChanged(list.size)
+    }
+
+    fun attachTo(adapter: RecyclerView.Adapter<*>) {
+        this.adapter = adapter
     }
 }
