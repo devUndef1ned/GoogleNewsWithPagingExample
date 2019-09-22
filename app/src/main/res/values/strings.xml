@@ -2,4 +2,5 @@
     <string name="app_name">GoogleNewsWithPagingExample</string>
 
     <string name="reload_button_title">Reload</string>
+    <string name="source_from">From: %1$s</string>
 </resources>

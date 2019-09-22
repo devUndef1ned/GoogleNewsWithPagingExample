@@ -111,6 +111,10 @@ class ArticlePagedAdapter(
         val article = pagedDataList[position]
         holder.setTitle(article.title)
         holder.setIndex(position)
+        holder.showImage(article.imageUrl)
+        holder.setDate(article.date)
+        holder.setDescription(article.description)
+        holder.setSource(article.sourceName)
     }
 
     override fun onBindViewHolder(
