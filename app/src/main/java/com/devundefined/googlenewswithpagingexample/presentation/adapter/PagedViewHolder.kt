@@ -7,15 +7,14 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.TransformationUtils
 import com.devundefined.googlenewswithpagingexample.R
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-sealed class ArticleViewHolder(view: View) : RecyclerView.ViewHolder(view)
+sealed class ArticlePagedViewHolder(view: View) : PagedViewHolder(view)
 
-class ContentViewHolder(view: View) : ArticleViewHolder(view) {
+class ContentViewHolder(view: View) : ArticlePagedViewHolder(view) {
     companion object {
         private val SDF = SimpleDateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.SHORT)
     }
@@ -63,7 +62,7 @@ class ContentViewHolder(view: View) : ArticleViewHolder(view) {
     }
 }
 
-class NetworkStateViewHolder(view: View) : ArticleViewHolder(view) {
+class LoadTaskStateViewHolder(view: View) : ArticlePagedViewHolder(view) {
     private val loader: ProgressBar
         get() = itemView.findViewById(R.id.loader)
     private val retryButton: Button

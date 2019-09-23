@@ -12,7 +12,6 @@ import com.devundefined.googlenewswithpagingexample.di.DaggerAppComponent
 import com.devundefined.googlenewswithpagingexample.di.modules.InfrastructureModule
 import com.devundefined.googlenewswithpagingexample.domain.Article
 import com.devundefined.googlenewswithpagingexample.presentation.adapter.ArticlePagedAdapter
-import com.devundefined.googlenewswithpagingexample.presentation.adapter.PageLoadController
 import com.devundefined.googlenewswithpagingexample.presentation.adapter.PagedDataList
 
 class MainActivity : AppCompatActivity(), MainView {
@@ -53,12 +52,7 @@ class MainActivity : AppCompatActivity(), MainView {
     }
 
     override fun showData(pagedList: PagedDataList<Article>) {
-        recyclerView.adapter =
-            ArticlePagedAdapter(pagedList, object : PageLoadController {
-                override fun loadNext() {
-                    presenter.loadNext()
-                }
-            }) { presenter.loadNext() }
+        recyclerView.adapter = ArticlePagedAdapter(pagedList) { presenter.loadNext() }
         recyclerView.visibility = View.VISIBLE
         loader.visibility = View.GONE
     }
