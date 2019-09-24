@@ -40,7 +40,6 @@ class ArticlePagedAdapter(pagedDataList: PagedDataList<Article>, loadAction: () 
     override fun onBindContentViewHolder(holder: ContentViewHolder, position: Int) {
         val article = pagedDataList[position]
         holder.setTitle(article.title)
-        holder.setIndex(position)
         holder.showImage(article.imageUrl)
         holder.setDate(article.date)
         holder.setDescription(article.description)

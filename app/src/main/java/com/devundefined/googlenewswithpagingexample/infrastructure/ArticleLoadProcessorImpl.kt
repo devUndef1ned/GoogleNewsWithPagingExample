@@ -13,7 +13,7 @@ class ArticleLoadProcessorImpl(private val newsApi: NewsApi, private val apiKey:
     ArticleLoadProcessor {
 
     companion object {
-        private const val DEFAULT_SIZE_PER_PAGE = 5
+        private const val DEFAULT_SIZE_PER_PAGE = 21
         @SuppressLint("SimpleDateFormat")
         private val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
     }
@@ -28,7 +28,6 @@ class ArticleLoadProcessorImpl(private val newsApi: NewsApi, private val apiKey:
         return runBlocking {
             withContext(scope.coroutineContext) {
                 try {
-                    Thread.sleep(3000)
                     val result = newsApi.getNews(apiKey, country, pageNumber, DEFAULT_SIZE_PER_PAGE)
                     if (result.status != "ok") {
                         LoadResult.Error(IllegalStateException(result.message))

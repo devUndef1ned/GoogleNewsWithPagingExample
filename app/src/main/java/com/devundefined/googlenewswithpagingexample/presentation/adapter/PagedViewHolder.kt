@@ -1,5 +1,6 @@
 package com.devundefined.googlenewswithpagingexample.presentation.adapter
 
+import android.text.format.DateUtils
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
@@ -15,12 +16,6 @@ import java.util.*
 sealed class ArticlePagedViewHolder(view: View) : PagedViewHolder(view)
 
 class ContentViewHolder(view: View) : ArticlePagedViewHolder(view) {
-    companion object {
-        private val SDF = SimpleDateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.SHORT)
-    }
-
-    private val position: TextView
-        get() = itemView.findViewById(R.id.position_label)
     private val title: TextView
         get() = itemView.findViewById(R.id.title)
     private val imageView: ImageView
@@ -36,10 +31,6 @@ class ContentViewHolder(view: View) : ArticlePagedViewHolder(view) {
         this.title.text = title
     }
 
-    fun setIndex(index: Int) {
-        position.text = "# ${index + 1}"
-    }
-
     fun showImage(url: String) {
         if (url.isNotEmpty()) {
             Glide.with(itemView)
@@ -50,7 +41,7 @@ class ContentViewHolder(view: View) : ArticlePagedViewHolder(view) {
     }
 
     fun setDate(date: Date) {
-        dateLabel.text = SDF.format(date)
+        dateLabel.text = DateUtils.getRelativeTimeSpanString(date.time, System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS)
     }
 
     fun setSource(sourceName: String) {

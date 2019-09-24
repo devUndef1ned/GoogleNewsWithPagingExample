@@ -1,9 +1,10 @@
 package com.devundefined.googlenewswithpagingexample.presentation
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.devundefined.googlenewswithpagingexample.BuildConfig
 import com.devundefined.googlenewswithpagingexample.R
@@ -36,7 +37,18 @@ class MainActivity : AppCompatActivity(), MainView {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        val columnsCount = getColumnsCount(resources.configuration.orientation)
+        val layoutManager = GridLayoutManager(this, columnsCount)
+        layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                return if (position % 7 == 0) {
+                    columnsCount
+                } else {
+                    1
+                }
+            }
+        }
+        recyclerView.layoutManager = layoutManager
     }
 
     override fun onStart() {
@@ -59,5 +71,13 @@ class MainActivity : AppCompatActivity(), MainView {
 
     override fun showError() {
 
+    }
+
+    private fun getColumnsCount(orientation: Int): Int {
+        return when (orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> 2
+            Configuration.ORIENTATION_LANDSCAPE -> 3
+            else -> throw IllegalArgumentException("No others configurations")
+        }
     }
 }

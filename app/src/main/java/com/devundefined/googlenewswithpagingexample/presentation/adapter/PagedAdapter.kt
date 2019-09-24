@@ -14,7 +14,7 @@ abstract class PagedAdapter<T : Any>(
         private const val LOAD_OFFSET = 3
     }
 
-    private var recyclerView: RecyclerView? = null
+    protected var recyclerView: RecyclerView? = null
 
     private val scrollListener: RecyclerView.OnScrollListener =
         object : RecyclerView.OnScrollListener() {
