@@ -23,7 +23,7 @@ class NewsApplication : Application() {
 
     private fun buildAppComponent() {
         appComponent = DaggerAppComponent.builder()
-            .infrastructureModule(InfrastructureModule(BuildConfig.NewsApiSecretKey))
+            .infrastructureModule(InfrastructureModule(BuildConfig.NewsApiSecretKey, this))
             .build()
     }
 }

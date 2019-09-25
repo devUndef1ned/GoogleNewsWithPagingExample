@@ -29,7 +29,7 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
         }
     }
 
-    private fun loadInitial() {
+    override fun loadInitial() {
         runBlocking {
             job = bgScope.launch {
                 when (val loadResult = articleProvider.getInitial()) {

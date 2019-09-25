@@ -1,5 +1,6 @@
 package com.devundefined.googlenewswithpagingexample.domain
 
+import com.devundefined.googlenewswithpagingexample.domain.ArticleProviderImpl.Companion.DEFAULT_SIZE_PER_PAGE
 import com.devundefined.googlenewswithpagingexample.domain.loader.ArticleLoadProcessor
 import com.devundefined.googlenewswithpagingexample.domain.loader.LoadResult
 import com.devundefined.googlenewswithpagingexample.domain.repository.ArticleRepository
@@ -32,7 +33,7 @@ class ArticleProviderTests {
     }
 
     @Test
-    fun whenGetInitial_shouldReturnPagedData_thatMatchesReceivedFromLoadProcessorData_ifCacheIsNotValid() {
+    fun whenGetInitial_shouldClearDataFromRepositoryAndReturnPagedData_thatMatchesReceivedFromLoadProcessorData_ifCacheIsNotValid() {
         val article1 =
             Article("sourceName1", "author1", "title1", "description1", "url1", "imageUrl1", Date())
         val article2 = Article(
@@ -61,6 +62,7 @@ class ArticleProviderTests {
         assertEquals(Source.NETWORK, (result as ArticlePageResult.PagedData).source)
         assertEquals(articles, result.data)
         verify(repository, never()).getPage(any(), any())
+        verify(repository).clearData(eq(1), eq(DEFAULT_SIZE_PER_PAGE))
     }
 
     @Test
@@ -88,6 +90,7 @@ class ArticleProviderTests {
         assertEquals(Source.LOCAL, (result as ArticlePageResult.PagedData).source)
         assertEquals(articles, result.data)
         verify(loadProcessor, never()).processLoading(any(), any())
+        verify(repository, never()).clearData(any(), any())
     }
 
     @Test
@@ -161,6 +164,7 @@ class ArticleProviderTests {
         assertEquals(nextArticles, (checkingResult as ArticlePageResult.PagedData).data)
         assertEquals(Source.NETWORK, checkingResult.source)
         verify(repository, never()).getPage(eq(2), any())
+        verify(repository).clearData(eq(2), eq(pageSize))
     }
 
     @Test
@@ -221,6 +225,7 @@ class ArticleProviderTests {
         assertEquals(nextArticles, (checkingResult as ArticlePageResult.PagedData).data)
         assertEquals(Source.LOCAL, checkingResult.source)
         verify(loadProcessor, never()).processLoading(eq(2), any())
+        verify(repository, never()).clearData(eq(2), any())
     }
 
     @Test(expected = IllegalArgumentException::class)

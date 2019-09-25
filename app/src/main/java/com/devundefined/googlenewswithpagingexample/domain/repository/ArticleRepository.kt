@@ -6,4 +6,5 @@ interface ArticleRepository {
     fun getPage(pageNumber: Int, pageSize: Int): ArticlePageResult.PagedData
     fun savePage(pagedData: ArticlePageResult.PagedData): ArticlePageResult.PagedData
     fun getTimestampForPage(pageNumber: Int, pageSize: Int): Long
+    fun clearData(pageNumber: Int, pageSize: Int)
 }

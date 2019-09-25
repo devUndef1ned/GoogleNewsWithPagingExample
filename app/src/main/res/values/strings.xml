@@ -2,5 +2,7 @@
     <string name="app_name">GoogleNewsWithPagingExample</string>
 
     <string name="reload_button_title">Reload</string>
+    <string name="retry_button_title">Retry</string>
     <string name="source_from">From: %1$s</string>
+    <string name="failed_initial_loading">Failed to get news.\nPlease, check your connection and retry.</string>
 </resources>

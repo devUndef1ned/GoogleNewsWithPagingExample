@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,6 +20,10 @@ class MainActivity : AppCompatActivity(), MainView {
         get() = findViewById(R.id.loader)
     private val recyclerView: RecyclerView
         get() = findViewById(R.id.recycler_view)
+    private val failedContainer: View
+        get() = findViewById(R.id.failed_content)
+    private val retryButton: Button
+        get() = findViewById(R.id.retry_button)
 
     private val presenter = NewsApplication.INSTANCE.appComponent.mainPresenter()
 
@@ -38,12 +43,19 @@ class MainActivity : AppCompatActivity(), MainView {
             }
         }
         recyclerView.layoutManager = layoutManager
+        retryButton.setOnClickListener {
+            recyclerView.visibility = View.GONE
+            loader.visibility = View.VISIBLE
+            failedContainer.visibility = View.GONE
+            presenter.loadInitial()
+        }
     }
 
     override fun onStart() {
         super.onStart()
         recyclerView.visibility = View.GONE
         loader.visibility = View.VISIBLE
+        failedContainer.visibility = View.GONE
         presenter.attachView(this)
     }
 
@@ -63,6 +75,7 @@ class MainActivity : AppCompatActivity(), MainView {
         }
         recyclerView.visibility = View.VISIBLE
         loader.visibility = View.GONE
+        failedContainer.visibility = View.GONE
     }
 
     private fun openArticleScreen(url: String, title: String) {
@@ -73,7 +86,9 @@ class MainActivity : AppCompatActivity(), MainView {
     }
 
     override fun showError() {
-
+        recyclerView.visibility = View.GONE
+        loader.visibility = View.GONE
+        failedContainer.visibility = View.VISIBLE
     }
 
     private fun getColumnsCount(orientation: Int): Int {

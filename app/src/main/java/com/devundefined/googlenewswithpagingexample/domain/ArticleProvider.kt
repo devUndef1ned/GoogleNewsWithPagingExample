@@ -16,7 +16,7 @@ class ArticleProviderImpl(private val articleLoadProcessor: ArticleLoadProcessor
                           private val cacheValidator: CacheValidator) : ArticleProvider {
 
     companion object {
-        private const val DEFAULT_SIZE_PER_PAGE = 21
+        const val DEFAULT_SIZE_PER_PAGE = 21
     }
 
     override fun getInitial() = provideData()
@@ -37,7 +37,8 @@ class ArticleProviderImpl(private val articleLoadProcessor: ArticleLoadProcessor
         return if (loadFromRepositoryCriteria(cacheTimestamp)) {
             articleRepository.getPage(pageNumber, pageSize)
         } else {
-            loadFromApi(pageNumber)
+            articleRepository.clearData(pageNumber, pageSize)
+            loadFromApi(pageNumber, pageSize)
         }
     }
 
@@ -45,8 +46,8 @@ class ArticleProviderImpl(private val articleLoadProcessor: ArticleLoadProcessor
         return cacheValidator.isValid(cacheTimestamp)
     }
 
-    private fun loadFromApi(page: Int = 1): ArticlePageResult {
-        val loadResult = articleLoadProcessor.processLoading(page, DEFAULT_SIZE_PER_PAGE)
+    private fun loadFromApi(page: Int, pageSize: Int): ArticlePageResult {
+        val loadResult = articleLoadProcessor.processLoading(page, pageSize)
         return when (loadResult) {
             is LoadResult.Error -> ArticlePageResult.Error(
                 loadResult.cause

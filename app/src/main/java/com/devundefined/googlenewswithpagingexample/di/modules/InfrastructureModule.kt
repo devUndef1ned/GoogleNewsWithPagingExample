@@ -1,9 +1,13 @@
 package com.devundefined.googlenewswithpagingexample.di.modules
 
+import android.content.Context
+import androidx.room.Room
 import com.devundefined.googlenewswithpagingexample.domain.loader.ArticleLoadProcessor
 import com.devundefined.googlenewswithpagingexample.domain.repository.ArticleRepository
 import com.devundefined.googlenewswithpagingexample.infrastructure.ArticleLoadProcessorImpl
 import com.devundefined.googlenewswithpagingexample.infrastructure.backend.NewsApi
+import com.devundefined.googlenewswithpagingexample.infrastructure.persistance.ArticleDao
+import com.devundefined.googlenewswithpagingexample.infrastructure.persistance.ArticleDatabase
 import com.devundefined.googlenewswithpagingexample.infrastructure.persistance.ArticleRepositoryImpl
 import dagger.Module
 import dagger.Provides
@@ -13,7 +17,10 @@ import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
-class InfrastructureModule(private val apiKey: String) {
+class InfrastructureModule(
+    private val apiKey: String,
+    private val appContext: Context
+) {
 
     companion object {
         private const val NAME_COUNTRY = "country"
@@ -44,5 +51,13 @@ class InfrastructureModule(private val apiKey: String) {
 
     @Provides
     @Singleton
-    fun providerRepository(): ArticleRepository = ArticleRepositoryImpl()
+    fun providerRepository(dao: ArticleDao): ArticleRepository = ArticleRepositoryImpl(dao)
+
+    @Provides
+    @Singleton
+    fun provideDao(articleDatabase: ArticleDatabase): ArticleDao = articleDatabase.dao()
+
+    @Provides
+    @Singleton
+    fun provideDatabase(): ArticleDatabase = Room.databaseBuilder(appContext, ArticleDatabase::class.java, "article-pages").build()
 }
