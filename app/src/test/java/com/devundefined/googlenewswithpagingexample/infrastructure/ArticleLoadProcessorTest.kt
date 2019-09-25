@@ -1,7 +1,7 @@
 package com.devundefined.googlenewswithpagingexample.infrastructure
 
 import com.devundefined.googlenewswithpagingexample.domain.Article
-import com.devundefined.googlenewswithpagingexample.domain.LoadResult
+import com.devundefined.googlenewswithpagingexample.domain.loader.LoadResult
 import com.devundefined.googlenewswithpagingexample.infrastructure.backend.ArticleDto
 import com.devundefined.googlenewswithpagingexample.infrastructure.backend.NewsApi
 import com.devundefined.googlenewswithpagingexample.infrastructure.backend.NewsDto
@@ -26,6 +26,7 @@ class ArticleLoadProcessorTest {
     @Test
     fun shouldReturnArticles_whenLoadSuccessfullyFromApi() {
         runBlocking {
+            val pageSize = 2
             val dto1 = ArticleDto(
                 SourceDto("sourceId1", "source1"),
                 "author1",
@@ -54,7 +55,7 @@ class ArticleLoadProcessorTest {
                 )
             )
 
-            val result = loader.processLoading()
+            val result = loader.processLoading(pageSize = pageSize)
 
             assertTrue(result is LoadResult.Data)
             (result as LoadResult.Data).pagedArticles.also { loadedArticles ->
@@ -67,6 +68,7 @@ class ArticleLoadProcessorTest {
     @Test
     fun shouldReturnErrorResult_whenLoadThroughApiFailed() {
         runBlocking {
+            val pageSize = 2
             whenever(
                 newsApi.getNews(
                     any(),
@@ -76,7 +78,7 @@ class ArticleLoadProcessorTest {
                 )
             ).thenThrow(IllegalArgumentException("Failed to load any data"))
 
-            val result = loader.processLoading()
+            val result = loader.processLoading(pageSize = pageSize)
 
             assertTrue(result is LoadResult.Error)
             assertTrue((result as LoadResult.Error).cause is IllegalArgumentException)
@@ -86,6 +88,7 @@ class ArticleLoadProcessorTest {
     @Test
     fun shouldReturnErrorResult_whenApiReturnedResultWithError() {
         runBlocking {
+            val pageSize = 2
             whenever(newsApi.getNews(any(), any(), any(), any())).thenReturn(
                 NewsDto(
                     status = "error", code = "Something is wrong", message =
@@ -93,7 +96,7 @@ class ArticleLoadProcessorTest {
                 )
             )
 
-            val result = loader.processLoading()
+            val result = loader.processLoading(pageSize = pageSize)
 
             assertTrue(result is LoadResult.Error)
             assertTrue((result as LoadResult.Error).cause is IllegalStateException)

@@ -1,13 +1,13 @@
 package com.devundefined.googlenewswithpagingexample.presentation
 
 import com.devundefined.googlenewswithpagingexample.domain.Article
-import com.devundefined.googlenewswithpagingexample.domain.ArticleLoadPageResult
-import com.devundefined.googlenewswithpagingexample.domain.ArticleLoader
+import com.devundefined.googlenewswithpagingexample.domain.ArticlePageResult
+import com.devundefined.googlenewswithpagingexample.domain.ArticleProvider
 import com.devundefined.googlenewswithpagingexample.presentation.adapter.LoadTaskState
 import com.devundefined.googlenewswithpagingexample.presentation.adapter.PagedDataList
 import kotlinx.coroutines.*
 
-class MainPresenterImpl(private val articleLoader: ArticleLoader) : MainPresenter {
+class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPresenter {
 
     companion object {
         private const val LOG_TAG = "MainPresenter"
@@ -32,17 +32,17 @@ class MainPresenterImpl(private val articleLoader: ArticleLoader) : MainPresente
     private fun loadInitial() {
         runBlocking {
             job = bgScope.launch {
-                when (val loadResult = articleLoader.load()) {
-                    is ArticleLoadPageResult.PagedData -> {
+                when (val loadResult = articleProvider.getInitial()) {
+                    is ArticlePageResult.PagedData -> {
                         state =
                             ScreenState.createInitial(loadResult)
                         runInMainThread { mainView?.showData(state.pagedDataList) }
                     }
-                    is ArticleLoadPageResult.Error -> uiScope.launch {
+                    is ArticlePageResult.Error -> uiScope.launch {
                         mainView?.showError()
                         android.util.Log.e(
                             LOG_TAG,
-                            "Failed to load initial data\n${loadResult.cause}"
+                            "Failed to getInitial initial data\n${loadResult.cause}"
                         )
                     }
                 }
@@ -69,12 +69,12 @@ class MainPresenterImpl(private val articleLoader: ArticleLoader) : MainPresente
         runBlocking {
             job = bgScope.launch {
                 try {
-                    val newData = articleLoader.loadMore(state.currentPage)
+                    val newData = articleProvider.getMore(state.currentPage)
                     when (newData) {
-                        is ArticleLoadPageResult.PagedData -> runInMainThread {
+                        is ArticlePageResult.PagedData -> runInMainThread {
                             state = state.mutate(newData)
                         }
-                        is ArticleLoadPageResult.Error -> handleError(
+                        is ArticlePageResult.Error -> handleError(
                             newData.cause,
                             "Failed to load more Data with exception"
                         )
@@ -97,7 +97,7 @@ class MainPresenterImpl(private val articleLoader: ArticleLoader) : MainPresente
 
 class ScreenState {
     companion object {
-        fun createInitial(articleLoaderPageResult: ArticleLoadPageResult.PagedData) =
+        fun createInitial(articleLoaderPageResult: ArticlePageResult.PagedData) =
             ScreenState().apply {
                 this.pagedDataList = PagedDataList(
                     articleLoaderPageResult.data.toMutableList(),
@@ -105,7 +105,7 @@ class ScreenState {
                 )
                 this.currentPage = articleLoaderPageResult
             }
-        fun create(pagedDataList: PagedDataList<Article>, currentPage: ArticleLoadPageResult.PagedData) =
+        fun create(pagedDataList: PagedDataList<Article>, currentPage: ArticlePageResult.PagedData) =
             ScreenState().apply {
                 this.pagedDataList = pagedDataList
                 this.currentPage = currentPage
@@ -113,11 +113,11 @@ class ScreenState {
     }
 
     lateinit var pagedDataList: PagedDataList<Article>
-    lateinit var currentPage: ArticleLoadPageResult.PagedData
+    lateinit var currentPage: ArticlePageResult.PagedData
 
     fun isInitialized() = this::pagedDataList.isInitialized
 
-    fun mutate(pagedData: ArticleLoadPageResult.PagedData): ScreenState {
+    fun mutate(pagedData: ArticlePageResult.PagedData): ScreenState {
         val newPagedDataList = pagedDataList.apply { addElements(pagedData.data) }
         return create(newPagedDataList, pagedData)
     }

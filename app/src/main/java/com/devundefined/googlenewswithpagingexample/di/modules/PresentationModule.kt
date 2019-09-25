@@ -1,6 +1,6 @@
 package com.devundefined.googlenewswithpagingexample.di.modules
 
-import com.devundefined.googlenewswithpagingexample.domain.ArticleLoader
+import com.devundefined.googlenewswithpagingexample.domain.ArticleProvider
 import com.devundefined.googlenewswithpagingexample.presentation.MainPresenter
 import com.devundefined.googlenewswithpagingexample.presentation.MainPresenterImpl
 import dagger.Module
@@ -12,5 +12,5 @@ class PresentationModule {
 
     @Provides
     @Singleton
-    fun providePresenter(articleLoader: ArticleLoader): MainPresenter = MainPresenterImpl(articleLoader)
+    fun providePresenter(articleProvider: ArticleProvider): MainPresenter = MainPresenterImpl(articleProvider)
 }
