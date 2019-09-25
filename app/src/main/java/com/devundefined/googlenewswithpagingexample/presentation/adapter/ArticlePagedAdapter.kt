@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import com.devundefined.googlenewswithpagingexample.R
 import com.devundefined.googlenewswithpagingexample.domain.Article
 
-class ArticlePagedAdapter(pagedDataList: PagedDataList<Article>, loadAction: () -> Unit) :
+class ArticlePagedAdapter(pagedDataList: PagedDataList<Article>, loadAction: () -> Unit, private val onContentClick: Article.() -> Unit) :
     PagedAdapter<Article>(pagedDataList, loadAction) {
 
     companion object {
@@ -44,6 +44,7 @@ class ArticlePagedAdapter(pagedDataList: PagedDataList<Article>, loadAction: () 
         holder.setDate(article.date)
         holder.setDescription(article.description)
         holder.setSource(article.sourceName)
+        holder.setClickListener { onContentClick(article) }
     }
 
     override fun onBindLoadTaskStateViewHolder(holder: LoadTaskStateViewHolder) {

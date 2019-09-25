@@ -16,6 +16,8 @@ import java.util.*
 sealed class ArticlePagedViewHolder(view: View) : PagedViewHolder(view)
 
 class ContentViewHolder(view: View) : ArticlePagedViewHolder(view) {
+    private val cardView: View
+        get() = itemView.findViewById(R.id.card_view)
     private val title: TextView
         get() = itemView.findViewById(R.id.title)
     private val imageView: ImageView
@@ -41,7 +43,11 @@ class ContentViewHolder(view: View) : ArticlePagedViewHolder(view) {
     }
 
     fun setDate(date: Date) {
-        dateLabel.text = DateUtils.getRelativeTimeSpanString(date.time, System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS)
+        dateLabel.text = DateUtils.getRelativeTimeSpanString(
+            date.time,
+            System.currentTimeMillis(),
+            DateUtils.HOUR_IN_MILLIS
+        )
     }
 
     fun setSource(sourceName: String) {
@@ -50,6 +56,10 @@ class ContentViewHolder(view: View) : ArticlePagedViewHolder(view) {
 
     fun setDescription(description: String) {
         this.description.text = description
+    }
+
+    fun setClickListener(listener: () -> Unit) {
+        cardView.setOnClickListener { listener() }
     }
 }
 

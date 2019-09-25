@@ -1,5 +1,6 @@
 package com.devundefined.googlenewswithpagingexample.presentation
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
@@ -64,9 +65,18 @@ class MainActivity : AppCompatActivity(), MainView {
     }
 
     override fun showData(pagedList: PagedDataList<Article>) {
-        recyclerView.adapter = ArticlePagedAdapter(pagedList) { presenter.loadNext() }
+        recyclerView.adapter = ArticlePagedAdapter(pagedList, { presenter.loadNext() }) {
+            openArticleScreen(url, title)
+        }
         recyclerView.visibility = View.VISIBLE
         loader.visibility = View.GONE
+    }
+
+    private fun openArticleScreen(url: String, title: String) {
+        Intent(this, WebPageActivity::class.java).apply {
+            putExtra(WebPageActivity.EXTRA_KEY_URL, url)
+            putExtra(WebPageActivity.EXTRA_KEY_TITLE, title)
+        }.run { startActivity(this) }
     }
 
     override fun showError() {
