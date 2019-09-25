@@ -4,4 +4,5 @@ interface MainPresenter {
     fun attachView(view: MainView)
     fun detachView()
     fun loadNext()
+    fun onDestroy()
 }

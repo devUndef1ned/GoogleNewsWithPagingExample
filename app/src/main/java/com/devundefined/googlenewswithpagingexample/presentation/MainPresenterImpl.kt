@@ -89,6 +89,10 @@ class MainPresenterImpl(private val articleLoader: ArticleLoader) : MainPresente
     private fun runInMainThread(task: () -> Unit) {
         uiScope.launch { task() }
     }
+
+    override fun onDestroy() {
+        job?.cancel()
+    }
 }
 
 class ScreenState {

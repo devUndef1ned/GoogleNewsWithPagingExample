@@ -7,11 +7,8 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.devundefined.googlenewswithpagingexample.BuildConfig
+import com.devundefined.googlenewswithpagingexample.NewsApplication
 import com.devundefined.googlenewswithpagingexample.R
-import com.devundefined.googlenewswithpagingexample.di.AppComponent
-import com.devundefined.googlenewswithpagingexample.di.DaggerAppComponent
-import com.devundefined.googlenewswithpagingexample.di.modules.InfrastructureModule
 import com.devundefined.googlenewswithpagingexample.domain.Article
 import com.devundefined.googlenewswithpagingexample.presentation.adapter.ArticlePagedAdapter
 import com.devundefined.googlenewswithpagingexample.presentation.adapter.PagedDataList
@@ -23,16 +20,7 @@ class MainActivity : AppCompatActivity(), MainView {
     private val recyclerView: RecyclerView
         get() = findViewById(R.id.recycler_view)
 
-    private val presenter: MainPresenter by lazy { createPresenter() }
-    private val appComponent: AppComponent by lazy { buildAppComponent() }
-
-    private fun buildAppComponent(): AppComponent {
-        return DaggerAppComponent.builder()
-            .infrastructureModule(InfrastructureModule(BuildConfig.NewsApiSecretKey))
-            .build()
-    }
-
-    private fun createPresenter(): MainPresenter = MainPresenterImpl(appComponent.articleLoader())
+    private val presenter = NewsApplication.INSTANCE.appComponent.mainPresenter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +50,11 @@ class MainActivity : AppCompatActivity(), MainView {
     override fun onStop() {
         presenter.attachView(this)
         super.onStop()
+    }
+
+    override fun onDestroy() {
+        presenter.onDestroy()
+        super.onDestroy()
     }
 
     override fun showData(pagedList: PagedDataList<Article>) {
