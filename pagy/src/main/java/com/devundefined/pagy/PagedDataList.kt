@@ -1,6 +1,7 @@
-package com.devundefined.googlenewswithpagingexample.presentation.adapter
+package com.devundefined.pagy
 
 import androidx.recyclerview.widget.RecyclerView
+import java.lang.ref.WeakReference
 
 class PagedDataList<T : Any>(
     private val list: MutableList<T>,
@@ -21,7 +22,7 @@ class PagedDataList<T : Any>(
     override fun listIterator(index: Int) = list.listIterator(index)
     override fun subList(fromIndex: Int, toIndex: Int) = list.subList(fromIndex, toIndex)
 
-    var adapter: RecyclerView.Adapter<*>? = null
+    var adapterRef: WeakReference<RecyclerView.Adapter<*>>? = null
 
     val isFinished
         get() = list.size == totalSize
@@ -33,17 +34,17 @@ class PagedDataList<T : Any>(
         val oldListSize = list.size
         list.addAll(newElements)
         loadTaskState = LoadTaskState.IDLE
-        adapter?.notifyItemRemoved(oldListSize)
-        adapter?.notifyItemRangeInserted(oldListSize, newElements.size + if (isFinished) 0 else 1)
+        adapterRef?.get()?.notifyItemRemoved(oldListSize)
+        adapterRef?.get()?.notifyItemRangeInserted(oldListSize, newElements.size + if (isFinished) 0 else 1)
     }
 
 
     fun changeTaskState(newState: LoadTaskState) {
         loadTaskState = newState
-        adapter?.notifyItemChanged(list.size)
+        adapterRef?.get()?.notifyItemChanged(list.size)
     }
 
     fun attachTo(adapter: RecyclerView.Adapter<*>) {
-        this.adapter = adapter
+        adapterRef = WeakReference(adapter)
     }
 }

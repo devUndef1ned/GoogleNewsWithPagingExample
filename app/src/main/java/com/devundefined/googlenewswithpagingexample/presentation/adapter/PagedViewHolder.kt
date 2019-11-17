@@ -6,16 +6,12 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.devundefined.googlenewswithpagingexample.R
-import java.text.DateFormat
-import java.text.SimpleDateFormat
+import com.devundefined.pagy.PagedViewHolder
 import java.util.*
 
-sealed class ArticlePagedViewHolder(view: View) : PagedViewHolder(view)
-
-class ContentViewHolder(view: View) : ArticlePagedViewHolder(view) {
+class ArticleViewHolder(view: View) : PagedViewHolder.ContentViewHolder(view) {
     private val cardView: View
         get() = itemView.findViewById(R.id.card_view)
     private val title: TextView
@@ -63,7 +59,7 @@ class ContentViewHolder(view: View) : ArticlePagedViewHolder(view) {
     }
 }
 
-class LoadTaskStateViewHolder(view: View) : ArticlePagedViewHolder(view) {
+class LoadStateViewHolder(view: View) : PagedViewHolder.LoadTaskStateViewHolder(view) {
     private val loader: ProgressBar
         get() = itemView.findViewById(R.id.loader)
     private val retryButton: Button
@@ -71,15 +67,15 @@ class LoadTaskStateViewHolder(view: View) : ArticlePagedViewHolder(view) {
     private val container: View
         get() = itemView.findViewById(R.id.state_content)
 
-    fun setLoadTaskState(state: LoadTaskState) {
+    fun setLoadTaskState(state: com.devundefined.pagy.LoadTaskState) {
         when (state) {
-            LoadTaskState.IDLE -> container.makeGone()
-            LoadTaskState.LOADING -> {
+            com.devundefined.pagy.LoadTaskState.IDLE -> container.makeGone()
+            com.devundefined.pagy.LoadTaskState.LOADING -> {
                 container.makeVisible()
                 loader.makeVisible()
                 retryButton.makeGone()
             }
-            LoadTaskState.FAILED -> {
+            com.devundefined.pagy.LoadTaskState.FAILED -> {
                 container.makeVisible()
                 loader.makeGone()
                 retryButton.makeVisible()

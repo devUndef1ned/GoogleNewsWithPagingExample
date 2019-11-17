@@ -3,8 +3,7 @@ package com.devundefined.googlenewswithpagingexample.presentation
 import com.devundefined.googlenewswithpagingexample.domain.Article
 import com.devundefined.googlenewswithpagingexample.domain.ArticlePageResult
 import com.devundefined.googlenewswithpagingexample.domain.ArticleProvider
-import com.devundefined.googlenewswithpagingexample.presentation.adapter.LoadTaskState
-import com.devundefined.googlenewswithpagingexample.presentation.adapter.PagedDataList
+import com.devundefined.pagy.PagedDataList
 import kotlinx.coroutines.*
 
 class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPresenter {
@@ -56,7 +55,7 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
 
     private fun handleError(error: Throwable, message: String) {
         runInMainThread {
-            state.pagedDataList.changeTaskState(LoadTaskState.FAILED)
+            state.pagedDataList.changeTaskState(com.devundefined.pagy.LoadTaskState.FAILED)
             android.util.Log.e(
                 LOG_TAG,
                 "$message\n${error}"
@@ -65,7 +64,7 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
     }
 
     override fun loadNext() {
-        state.pagedDataList.changeTaskState(LoadTaskState.LOADING)
+        state.pagedDataList.changeTaskState(com.devundefined.pagy.LoadTaskState.LOADING)
         runBlocking {
             job = bgScope.launch {
                 try {

@@ -12,7 +12,7 @@ import com.devundefined.googlenewswithpagingexample.NewsApplication
 import com.devundefined.googlenewswithpagingexample.R
 import com.devundefined.googlenewswithpagingexample.domain.Article
 import com.devundefined.googlenewswithpagingexample.presentation.adapter.ArticlePagedAdapter
-import com.devundefined.googlenewswithpagingexample.presentation.adapter.PagedDataList
+import com.devundefined.pagy.PagedDataList
 
 class MainActivity : AppCompatActivity(), MainView {
 

@@ -1,4 +1,4 @@
-package com.devundefined.googlenewswithpagingexample.presentation.adapter
+package com.devundefined.pagy
 
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +14,7 @@ abstract class PagedAdapter<T : Any>(
         private const val LOAD_OFFSET = 3
     }
 
-    protected var recyclerView: RecyclerView? = null
+    private var recyclerView: RecyclerView? = null
 
     private val scrollListener: RecyclerView.OnScrollListener =
         object : RecyclerView.OnScrollListener() {
@@ -78,15 +78,19 @@ abstract class PagedAdapter<T : Any>(
         }
     }
 
-    abstract fun onCreateLoadTaskStateViewHolder(parent: ViewGroup): PagedViewHolder
-    abstract fun onCreateContentViewHolder(parent: ViewGroup, viewType: Int): PagedViewHolder
-    abstract fun onBindContentViewHolder(holder: ContentViewHolder, position: Int)
-    abstract fun onBindLoadTaskStateViewHolder(holder: LoadTaskStateViewHolder)
+    abstract fun onCreateLoadTaskStateViewHolder(parent: ViewGroup): PagedViewHolder.LoadTaskStateViewHolder
+    abstract fun onCreateContentViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): PagedViewHolder.ContentViewHolder
+
+    abstract fun onBindContentViewHolder(holder: PagedViewHolder.ContentViewHolder, position: Int)
+    abstract fun onBindLoadTaskStateViewHolder(holder: PagedViewHolder.LoadTaskStateViewHolder)
 
     override fun onBindViewHolder(holder: PagedViewHolder, position: Int) {
         when (holder) {
-            is ContentViewHolder -> onBindContentViewHolder(holder, position)
-            is LoadTaskStateViewHolder -> onBindLoadTaskStateViewHolder(holder)
+            is PagedViewHolder.ContentViewHolder -> onBindContentViewHolder(holder, position)
+            is PagedViewHolder.LoadTaskStateViewHolder -> onBindLoadTaskStateViewHolder(holder)
         }
     }
 
@@ -99,4 +103,7 @@ abstract class PagedAdapter<T : Any>(
     }
 }
 
-open class PagedViewHolder(view: View) : RecyclerView.ViewHolder(view)
+sealed class PagedViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    abstract class ContentViewHolder(view: View) : PagedViewHolder(view)
+    abstract class LoadTaskStateViewHolder(view: View) : PagedViewHolder(view)
+}
