@@ -5,15 +5,15 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 
 abstract class PagedAdapter<T : Any>(
-    protected val pagedDataList: PagedDataList<T>,
+    private val loadOffset: Int,
     protected val loadAction: () -> Unit
-) : RecyclerView.Adapter<PagedViewHolder>() {
+) : RecyclerView.Adapter<PagedViewHolder>(), PagedList<T> {
 
     companion object {
         private const val VIEW_TYPE_LOAD_TASK_STATE = 1
-        private const val LOAD_OFFSET = 3
     }
 
+    private val pagedDataList: PagedDataList<T> = PagedDataList()
     private var recyclerView: RecyclerView? = null
 
     private val scrollListener: RecyclerView.OnScrollListener =
@@ -28,7 +28,7 @@ abstract class PagedAdapter<T : Any>(
             }
 
             private fun needToStartLoading(endListOffset: Int): Boolean {
-                return !pagedDataList.isFinished && pagedDataList.loadTaskState == LoadTaskState.IDLE && endListOffset <= LOAD_OFFSET
+                return !pagedDataList.isFinished && pagedDataList.loadTaskState == LoadTaskState.IDLE && endListOffset <= loadOffset
             }
         }
 
@@ -69,6 +69,9 @@ abstract class PagedAdapter<T : Any>(
         }
     }
 
+    /**
+     * Should return Integer according to type of content.
+     */
     abstract fun getContentItemViewType(position: Int): Int
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PagedViewHolder {
@@ -78,19 +81,42 @@ abstract class PagedAdapter<T : Any>(
         }
     }
 
+    /**
+     * Should create ViewHolder for the LoadTask cell.
+     */
     abstract fun onCreateLoadTaskStateViewHolder(parent: ViewGroup): PagedViewHolder.LoadTaskStateViewHolder
+
+    /**
+     * Should create ViewHolder for a content cell according to [viewType].
+     */
     abstract fun onCreateContentViewHolder(
         parent: ViewGroup,
         viewType: Int
     ): PagedViewHolder.ContentViewHolder
 
-    abstract fun onBindContentViewHolder(holder: PagedViewHolder.ContentViewHolder, position: Int)
-    abstract fun onBindLoadTaskStateViewHolder(holder: PagedViewHolder.LoadTaskStateViewHolder)
+    /**
+     * Binds data to particular content view holder.
+     */
+    abstract fun onBindContentViewHolder(holder: PagedViewHolder.ContentViewHolder, data: T)
+
+    /**
+     * Binds [loadTaskState] to view holder.
+     */
+    abstract fun onBindLoadTaskStateViewHolder(
+        holder: PagedViewHolder.LoadTaskStateViewHolder,
+        loadTaskState: LoadTaskState
+    )
 
     override fun onBindViewHolder(holder: PagedViewHolder, position: Int) {
         when (holder) {
-            is PagedViewHolder.ContentViewHolder -> onBindContentViewHolder(holder, position)
-            is PagedViewHolder.LoadTaskStateViewHolder -> onBindLoadTaskStateViewHolder(holder)
+            is PagedViewHolder.ContentViewHolder -> onBindContentViewHolder(
+                holder,
+                pagedDataList[position]
+            )
+            is PagedViewHolder.LoadTaskStateViewHolder -> onBindLoadTaskStateViewHolder(
+                holder,
+                pagedDataList.loadTaskState
+            )
         }
     }
 
@@ -101,6 +127,13 @@ abstract class PagedAdapter<T : Any>(
     ) {
         onBindViewHolder(holder, position)
     }
+
+    override val loadTaskState: LoadTaskState
+        get() = pagedDataList.loadTaskState
+
+    override fun setSize(totalSize: Int) = pagedDataList.setSize(totalSize)
+    override fun addElements(newElements: Collection<T>) = pagedDataList.addElements(newElements)
+    override fun changeTaskState(newState: LoadTaskState) = pagedDataList.changeTaskState(newState)
 }
 
 sealed class PagedViewHolder(view: View) : RecyclerView.ViewHolder(view) {

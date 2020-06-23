@@ -3,7 +3,7 @@ package com.devundefined.googlenewswithpagingexample.presentation
 import com.devundefined.googlenewswithpagingexample.domain.Article
 import com.devundefined.googlenewswithpagingexample.domain.ArticlePageResult
 import com.devundefined.googlenewswithpagingexample.domain.ArticleProvider
-import com.devundefined.pagy.PagedDataList
+import com.devundefined.pagy.LoadTaskState
 import kotlinx.coroutines.*
 
 class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPresenter {
@@ -24,7 +24,7 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
         if (!state.isInitialized()) {
             loadInitial()
         } else {
-            mainView?.showData(state.pagedDataList)
+            mainView?.showData(state.currentList)
         }
     }
 
@@ -35,7 +35,7 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
                     is ArticlePageResult.PagedData -> {
                         state =
                             ScreenState.createInitial(loadResult)
-                        runInMainThread { mainView?.showData(state.pagedDataList) }
+                        runInMainThread { mainView?.showData(state.currentList) }
                     }
                     is ArticlePageResult.Error -> uiScope.launch {
                         mainView?.showError()
@@ -55,7 +55,7 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
 
     private fun handleError(error: Throwable, message: String) {
         runInMainThread {
-            state.pagedDataList.changeTaskState(com.devundefined.pagy.LoadTaskState.FAILED)
+            mainView?.showTaskState(LoadTaskState.FAILED)
             android.util.Log.e(
                 LOG_TAG,
                 "$message\n${error}"
@@ -64,14 +64,15 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
     }
 
     override fun loadNext() {
-        state.pagedDataList.changeTaskState(com.devundefined.pagy.LoadTaskState.LOADING)
+        mainView?.showTaskState(LoadTaskState.LOADING)
         runBlocking {
             job = bgScope.launch {
                 try {
-                    val newData = articleProvider.getMore(state.currentPage)
+                    val newData = articleProvider.getMore(state.currentPage ?: throw IllegalArgumentException("Must be non null!"))
                     when (newData) {
                         is ArticlePageResult.PagedData -> runInMainThread {
                             state = state.mutate(newData)
+                            mainView?.showData(state.currentList)
                         }
                         is ArticlePageResult.Error -> handleError(
                             newData.cause,
@@ -94,30 +95,23 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
     }
 }
 
-class ScreenState {
+class ScreenState(
+    val currentList: List<Article> = listOf(),
+    val currentPage: ArticlePageResult.PagedData? = null
+) {
     companion object {
         fun createInitial(articleLoaderPageResult: ArticlePageResult.PagedData) =
-            ScreenState().apply {
-                this.pagedDataList = PagedDataList(
-                    articleLoaderPageResult.data.toMutableList(),
-                    articleLoaderPageResult.totalCount
-                )
-                this.currentPage = articleLoaderPageResult
-            }
-        fun create(pagedDataList: PagedDataList<Article>, currentPage: ArticlePageResult.PagedData) =
-            ScreenState().apply {
-                this.pagedDataList = pagedDataList
-                this.currentPage = currentPage
-            }
+            ScreenState(
+                mutableListOf(*articleLoaderPageResult.data.toTypedArray()),
+                articleLoaderPageResult
+            )
+
+        fun create(list: List<Article>, currentPage: ArticlePageResult.PagedData) =
+            ScreenState(list, currentPage)
     }
 
-    lateinit var pagedDataList: PagedDataList<Article>
-    lateinit var currentPage: ArticlePageResult.PagedData
+    fun isInitialized() = currentList.isNotEmpty()
 
-    fun isInitialized() = this::pagedDataList.isInitialized
-
-    fun mutate(pagedData: ArticlePageResult.PagedData): ScreenState {
-        val newPagedDataList = pagedDataList.apply { addElements(pagedData.data) }
-        return create(newPagedDataList, pagedData)
-    }
+    fun mutate(pagedData: ArticlePageResult.PagedData) =
+        ScreenState(currentList + pagedData.data, pagedData)
 }

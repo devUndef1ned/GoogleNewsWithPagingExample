@@ -8,9 +8,9 @@ import dagger.Provides
 import javax.inject.Singleton
 
 @Module
-class PresentationModule {
-
+object PresentationModule {
     @Provides
     @Singleton
-    fun providePresenter(articleProvider: ArticleProvider): MainPresenter = MainPresenterImpl(articleProvider)
+    fun providePresenter(articleProvider: ArticleProvider): MainPresenter =
+        MainPresenterImpl(articleProvider)
 }

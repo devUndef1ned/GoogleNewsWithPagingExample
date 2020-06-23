@@ -1,9 +1,10 @@
 package com.devundefined.googlenewswithpagingexample.presentation
 
 import com.devundefined.googlenewswithpagingexample.domain.Article
-import com.devundefined.pagy.PagedDataList
+import com.devundefined.pagy.LoadTaskState
 
 interface MainView {
-    fun showData(pagedList: PagedDataList<Article>)
+    fun showData(pagedList: Collection<Article>)
     fun showError()
+    fun showTaskState(taskState: LoadTaskState)
 }

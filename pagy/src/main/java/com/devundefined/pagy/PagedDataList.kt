@@ -3,34 +3,27 @@ package com.devundefined.pagy
 import androidx.recyclerview.widget.RecyclerView
 import java.lang.ref.WeakReference
 
-class PagedDataList<T : Any>(
-    private val list: MutableList<T>,
-    private val totalSize: Int
-) : List<T> {
+internal class PagedDataList<T : Any>(private val list: MutableList<T> = mutableListOf()) : List<T> by list, PagedList<T> {
 
-    override val size: Int
-        get() = list.size
+    companion object {
+        private const val NOT_INIT_SIZE = -1
+    }
 
-    override fun contains(element: T) = list.contains(element)
-    override fun containsAll(elements: Collection<T>) = list.containsAll(elements)
-    override fun get(index: Int) = list[index]
-    override fun indexOf(element: T) = list.indexOf(element)
-    override fun isEmpty() = list.isEmpty()
-    override fun iterator() = list.iterator()
-    override fun lastIndexOf(element: T) = list.lastIndexOf(element)
-    override fun listIterator() = list.listIterator()
-    override fun listIterator(index: Int) = list.listIterator(index)
-    override fun subList(fromIndex: Int, toIndex: Int) = list.subList(fromIndex, toIndex)
+    private var totalSize: Int = NOT_INIT_SIZE
 
-    var adapterRef: WeakReference<RecyclerView.Adapter<*>>? = null
+    private var adapterRef: WeakReference<RecyclerView.Adapter<*>>? = null
 
     val isFinished
         get() = list.size == totalSize
 
-    var loadTaskState = LoadTaskState.IDLE
+    override var loadTaskState = LoadTaskState.IDLE
         private set
 
-    fun addElements(newElements: Collection<T>) {
+    override fun setSize(totalSize: Int) {
+        this.totalSize = totalSize
+    }
+
+    override fun addElements(newElements: Collection<T>) {
         val oldListSize = list.size
         list.addAll(newElements)
         loadTaskState = LoadTaskState.IDLE
@@ -39,7 +32,7 @@ class PagedDataList<T : Any>(
     }
 
 
-    fun changeTaskState(newState: LoadTaskState) {
+    override fun changeTaskState(newState: LoadTaskState) {
         loadTaskState = newState
         adapterRef?.get()?.notifyItemChanged(list.size)
     }

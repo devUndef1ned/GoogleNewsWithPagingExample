@@ -4,11 +4,15 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.devundefined.googlenewswithpagingexample.R
 import com.devundefined.googlenewswithpagingexample.domain.Article
-import com.devundefined.pagy.PagedDataList
+import com.devundefined.pagy.LoadTaskState
+import com.devundefined.pagy.PagedAdapter
 import com.devundefined.pagy.PagedViewHolder
 
-class ArticlePagedAdapter(pagedDataList: PagedDataList<Article>, loadAction: () -> Unit, private val onContentClick: Article.() -> Unit) :
-    com.devundefined.pagy.PagedAdapter<Article>(pagedDataList, loadAction) {
+class ArticlePagedAdapter(
+    loadOffset: Int,
+    loadAction: () -> Unit,
+    private val onContentClick: Article.() -> Unit
+) : PagedAdapter<Article>(loadOffset, loadAction) {
 
     companion object {
         private const val VIEW_TYPE_CONTENT = 2
@@ -26,8 +30,11 @@ class ArticlePagedAdapter(pagedDataList: PagedDataList<Article>, loadAction: () 
         )
     }
 
-    override fun onCreateContentViewHolder(parent: ViewGroup, viewType: Int): PagedViewHolder.ContentViewHolder {
-        return when(viewType) {
+    override fun onCreateContentViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): PagedViewHolder.ContentViewHolder {
+        return when (viewType) {
             VIEW_TYPE_CONTENT -> ArticleViewHolder(
                 LayoutInflater.from(parent.context).inflate(
                     R.layout.item_article_layout,
@@ -39,21 +46,20 @@ class ArticlePagedAdapter(pagedDataList: PagedDataList<Article>, loadAction: () 
         }
     }
 
-    override fun onBindContentViewHolder(holder: PagedViewHolder.ContentViewHolder, position: Int) {
+    override fun onBindContentViewHolder(holder: PagedViewHolder.ContentViewHolder, data: Article) {
         if (holder is ArticleViewHolder) {
-            val article = pagedDataList[position]
-            holder.setTitle(article.title)
-            holder.showImage(article.imageUrl)
-            holder.setDate(article.date)
-            holder.setDescription(article.description)
-            holder.setSource(article.sourceName)
-            holder.setClickListener { onContentClick(article) }
+            holder.setTitle(data.title)
+            holder.showImage(data.imageUrl)
+            holder.setDate(data.date)
+            holder.setDescription(data.description)
+            holder.setSource(data.sourceName)
+            holder.setClickListener { onContentClick(data) }
         }
     }
 
-    override fun onBindLoadTaskStateViewHolder(holder: PagedViewHolder.LoadTaskStateViewHolder) {
+    override fun onBindLoadTaskStateViewHolder(holder: PagedViewHolder.LoadTaskStateViewHolder, loadTaskState: LoadTaskState) {
         if (holder is LoadStateViewHolder) {
-            holder.setLoadTaskState(pagedDataList.loadTaskState)
+            holder.setLoadTaskState(loadTaskState)
             holder.setReloadAction(loadAction)
         }
     }

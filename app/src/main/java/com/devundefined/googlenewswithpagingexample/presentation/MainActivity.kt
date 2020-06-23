@@ -12,9 +12,13 @@ import com.devundefined.googlenewswithpagingexample.NewsApplication
 import com.devundefined.googlenewswithpagingexample.R
 import com.devundefined.googlenewswithpagingexample.domain.Article
 import com.devundefined.googlenewswithpagingexample.presentation.adapter.ArticlePagedAdapter
-import com.devundefined.pagy.PagedDataList
+import com.devundefined.pagy.LoadTaskState
 
 class MainActivity : AppCompatActivity(), MainView {
+
+    companion object {
+        private const val TASK_LOAD_OFFSET = 6
+    }
 
     private val loader: View
         get() = findViewById(R.id.loader)
@@ -26,6 +30,8 @@ class MainActivity : AppCompatActivity(), MainView {
         get() = findViewById(R.id.retry_button)
 
     private val presenter = NewsApplication.INSTANCE.appComponent.mainPresenter()
+
+    private var adapter: ArticlePagedAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +55,11 @@ class MainActivity : AppCompatActivity(), MainView {
             failedContainer.visibility = View.GONE
             presenter.loadInitial()
         }
+        adapter = ArticlePagedAdapter(TASK_LOAD_OFFSET, presenter::loadNext, ::openArticleScreen)
+        recyclerView.adapter = adapter
+        recyclerView.visibility = View.VISIBLE
+        loader.visibility = View.GONE
+        failedContainer.visibility = View.GONE
     }
 
     override fun onStart() {
@@ -69,19 +80,18 @@ class MainActivity : AppCompatActivity(), MainView {
         super.onDestroy()
     }
 
-    override fun showData(pagedList: PagedDataList<Article>) {
-        recyclerView.adapter = ArticlePagedAdapter(pagedList, { presenter.loadNext() }) {
-            openArticleScreen(url, title)
-        }
-        recyclerView.visibility = View.VISIBLE
-        loader.visibility = View.GONE
-        failedContainer.visibility = View.GONE
+    override fun showData(pagedList: Collection<Article>) {
+        adapter?.addElements(pagedList)
     }
 
-    private fun openArticleScreen(url: String, title: String) {
+    override fun showTaskState(taskState: LoadTaskState) {
+        adapter?.changeTaskState(taskState)
+    }
+
+    private fun openArticleScreen(article: Article) {
         Intent(this, WebPageActivity::class.java).apply {
-            putExtra(WebPageActivity.EXTRA_KEY_URL, url)
-            putExtra(WebPageActivity.EXTRA_KEY_TITLE, title)
+            putExtra(WebPageActivity.EXTRA_KEY_URL, article.url)
+            putExtra(WebPageActivity.EXTRA_KEY_TITLE, article.title)
         }.run { startActivity(this) }
     }
 
