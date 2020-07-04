@@ -38,24 +38,24 @@ class MainActivity : AppCompatActivity(), MainView {
 
         setContentView(R.layout.activity_main)
         val columnsCount = getColumnsCount(resources.configuration.orientation)
-        val layoutManager = GridLayoutManager(this, columnsCount)
-        layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-            override fun getSpanSize(position: Int): Int {
-                return if (position % 7 == 0) {
-                    columnsCount
-                } else {
-                    1
+        recyclerView.layoutManager = GridLayoutManager(this, columnsCount).apply {
+            spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int {
+                    return if (position % 7 == 0) {
+                        columnsCount
+                    } else {
+                        1
+                    }
                 }
             }
         }
-        recyclerView.layoutManager = layoutManager
+
         retryButton.setOnClickListener {
-            recyclerView.visibility = View.GONE
-            loader.visibility = View.VISIBLE
-            failedContainer.visibility = View.GONE
             presenter.loadInitial()
         }
+
         adapter = ArticlePagedAdapter(TASK_LOAD_OFFSET, presenter::loadNext, ::openArticleScreen)
+
         recyclerView.adapter = adapter
         recyclerView.visibility = View.VISIBLE
         loader.visibility = View.GONE
@@ -95,10 +95,22 @@ class MainActivity : AppCompatActivity(), MainView {
         }.run { startActivity(this) }
     }
 
+    override fun showProgress() {
+        recyclerView.visibility = View.GONE
+        loader.visibility = View.VISIBLE
+        failedContainer.visibility = View.GONE
+    }
+
     override fun showError() {
         recyclerView.visibility = View.GONE
         loader.visibility = View.GONE
         failedContainer.visibility = View.VISIBLE
+    }
+
+    override fun showContent() {
+        recyclerView.visibility = View.VISIBLE
+        loader.visibility = View.GONE
+        failedContainer.visibility = View.GONE
     }
 
     private fun getColumnsCount(orientation: Int): Int {

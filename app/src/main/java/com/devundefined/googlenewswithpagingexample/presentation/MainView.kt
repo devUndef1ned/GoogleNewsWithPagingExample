@@ -7,4 +7,6 @@ interface MainView {
     fun showData(pagedList: Collection<Article>)
     fun showError()
     fun showTaskState(taskState: LoadTaskState)
+    fun showContent()
+    fun showProgress()
 }

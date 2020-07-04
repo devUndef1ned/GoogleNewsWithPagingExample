@@ -1,6 +1,5 @@
 package com.devundefined.googlenewswithpagingexample.presentation
 
-import com.devundefined.googlenewswithpagingexample.domain.Article
 import com.devundefined.googlenewswithpagingexample.domain.ArticlePageResult
 import com.devundefined.googlenewswithpagingexample.domain.ArticleProvider
 import com.devundefined.pagy.LoadTaskState
@@ -24,18 +23,23 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
         if (!state.isInitialized()) {
             loadInitial()
         } else {
+            mainView?.showContent()
             mainView?.showData(state.currentList)
         }
     }
 
     override fun loadInitial() {
+        mainView?.showProgress()
         runBlocking {
             job = bgScope.launch {
                 when (val loadResult = articleProvider.getInitial()) {
                     is ArticlePageResult.PagedData -> {
                         state =
                             ScreenState.createInitial(loadResult)
-                        runInMainThread { mainView?.showData(state.currentList) }
+                        runInMainThread {
+                            mainView?.showContent()
+                            mainView?.showData(state.currentList)
+                        }
                     }
                     is ArticlePageResult.Error -> uiScope.launch {
                         mainView?.showError()
@@ -95,23 +99,3 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
     }
 }
 
-class ScreenState(
-    val currentList: List<Article> = listOf(),
-    val currentPage: ArticlePageResult.PagedData? = null
-) {
-    companion object {
-        fun createInitial(articleLoaderPageResult: ArticlePageResult.PagedData) =
-            ScreenState(
-                mutableListOf(*articleLoaderPageResult.data.toTypedArray()),
-                articleLoaderPageResult
-            )
-
-        fun create(list: List<Article>, currentPage: ArticlePageResult.PagedData) =
-            ScreenState(list, currentPage)
-    }
-
-    fun isInitialized() = currentList.isNotEmpty()
-
-    fun mutate(pagedData: ArticlePageResult.PagedData) =
-        ScreenState(currentList + pagedData.data, pagedData)
-}
