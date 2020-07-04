@@ -24,7 +24,7 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
             loadInitial()
         } else {
             mainView?.showContent()
-            mainView?.showData(state.currentList)
+            mainView?.showPagedData(state.totalSize, state.currentList)
         }
     }
 
@@ -38,7 +38,7 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
                             ScreenState.createInitial(loadResult)
                         runInMainThread {
                             mainView?.showContent()
-                            mainView?.showData(state.currentList)
+                            mainView?.showPagedData(state.totalSize, state.currentList)
                         }
                     }
                     is ArticlePageResult.Error -> uiScope.launch {
@@ -72,11 +72,16 @@ class MainPresenterImpl(private val articleProvider: ArticleProvider) : MainPres
         runBlocking {
             job = bgScope.launch {
                 try {
-                    val newData = articleProvider.getMore(state.currentPage ?: throw IllegalArgumentException("Must be non null!"))
+                    val newData = articleProvider.getMore(
+                        state.currentPage ?: throw IllegalArgumentException("Must be non null!")
+                    )
                     when (newData) {
                         is ArticlePageResult.PagedData -> runInMainThread {
                             state = state.mutate(newData)
-                            mainView?.showData(state.currentList)
+                            mainView?.showPagedData(
+                                state.totalSize,
+                                state.currentPage?.data ?: listOf()
+                            )
                         }
                         is ArticlePageResult.Error -> handleError(
                             newData.cause,

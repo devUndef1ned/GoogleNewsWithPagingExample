@@ -80,8 +80,9 @@ class MainActivity : AppCompatActivity(), MainView {
         super.onDestroy()
     }
 
-    override fun showData(pagedList: Collection<Article>) {
-        adapter?.addElements(pagedList)
+    override fun showPagedData(totalSize: Int, currentPagedDataList: Collection<Article>) {
+        adapter?.setSize(totalSize)
+        adapter?.addElements(currentPagedDataList)
     }
 
     override fun showTaskState(taskState: LoadTaskState) {
